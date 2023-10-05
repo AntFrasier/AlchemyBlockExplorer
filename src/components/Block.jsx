@@ -18,8 +18,8 @@ const Block = ({block}) => {
   return (
     <div className='p-5'>
         <h2 className='text-xl font-500 my-5'>Block informations : </h2>
-        <div className='flex flex-col g-5 w-sm bg-base-300'>
-            <div>
+        <div className='flex flex-col g-5 w-sm bg-slate-50'>
+            <div className='mb-3'>
                 Block : #{block?.number}
             </div>
             <table>
@@ -46,6 +46,16 @@ const Block = ({block}) => {
                     </td>
                     <td>
                         {block?.miner}
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        transactions:
+                    </td>
+                    <td>
+                        <ul>
+                        {block?.transactions.length}
+                        </ul>
                     </td>
                 </tr>
                 </tbody>

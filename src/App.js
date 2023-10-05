@@ -1,4 +1,4 @@
-import { Alchemy, Network } from 'alchemy-sdk';
+import { Alchemy, Network, Utils } from 'alchemy-sdk';
 import { useEffect, useState } from 'react';
 import SearchIcon from '@mui/icons-material/Search';
 import Block from './components/Block';
@@ -14,7 +14,6 @@ const settings = {
   apiKey: process.env.REACT_APP_ALCHEMY_API_KEY,
   network: Network.ETH_MAINNET,
 };
-
 
 // In this week's lessons we used ethers.js. Here we are using the
 // Alchemy SDK is an umbrella library with several different packages.
@@ -36,28 +35,40 @@ function App() {
   }
 
   async function getAddressInfo(address) {
-    setAddressInfo()
+    const balance = await alchemy.core.getBalance(address)
+    const isContract = await alchemy.core.isContractAddress(address)
+    const tokens= await alchemy.core.getTokensForOwner(address)
+    const decimalBalance = Utils.formatEther(balance)
+    console.log(address, decimalBalance)
+    setAddressInfo({address, decimalBalance, isContract, tokens:tokens.tokens})
   }
   async function getHashInfo(hash) {
-    setHashInfo(await alchemy.core.getBlockWithTransactions(hash));
+    console.log("lets find from a hash")
+    const info = await alchemy.core.getTransactionReceipt(hash)
+    console.log(info)
+    setHashInfo(info)
+      
   }
 
   async function getBlockInfo(number) {
-
-    let info = await alchemy.core.getBlock(number)
+    console.log(number)
+    let info = await alchemy.core.getBlockWithTransactions(Number(number))
     console.log(info)
     setBlockInfo(info)
   }
 
   async function sendRequest(){
+    console.log(filter)
     switch (filter){
       case "address":
         getAddressInfo(search);
         break;
       case "hash":
+        console.log( "in the switch case hash")
         getHashInfo(search);
         break;
       default:
+        console.log( "in the switch case default")
         getBlockInfo(search);
     }
 
@@ -67,16 +78,6 @@ function App() {
     getBlockNumber();
   },[]);
 
-  useEffect( () => {
-    async function getBlockInfo() {
-
-    }
-    console.log("is this executed ?")
-    if (blockNumber){
-      getBlockInfo();
-    }
-  },[blockNumber] )
-
   return (
     <div className="flex flex-col">
       <header className='flex flex-col p-5  bg-slate-50'>
@@ -84,8 +85,15 @@ function App() {
         <p className='ml-5 mt-3'>This is the week 3 project of Alchemy Uni <a href='https://github.com/AntFrasier/AlchemyBlockExplorer' target='_blanck' rel='nofollow noreferre noopener'>Fork me !</a></p>
           <div className='flex items-end flex-wrap'>
             <div className='bg-white w-[500px] h-[50px] rounded-2xl px-5 py-2 flex flex-row justify-start gap-3 mt-3 ml-auto'>
-              <select name='filter' id='filter' onChange={(e) => setFilter(e.value)}>
-                <option value={""}>Filters</option>
+              <select 
+                name='filter' 
+                id='filter' 
+                onChange={(e) => {
+                  console.log(e.target.value)
+                  setFilter(e.target.value)
+                  }
+                }>
+                <option value={filter}>Filters</option>
                 <option value={"address"}>Address</option>
                 <option value={"block"}>Block</option>
                 <option value={"hash"}>TxHash</option>
@@ -100,7 +108,7 @@ function App() {
         
         {blockInfo ? <Block block={blockInfo}/>  : null}
         {hashInfo ? <Hash hash={hashInfo}/>  : null}
-        {addressInfo ? <Address address={addressInfo}/>  : null}
+        {addressInfo ? <Address account={addressInfo}/>  : null}
           
        </main>
     </div>
